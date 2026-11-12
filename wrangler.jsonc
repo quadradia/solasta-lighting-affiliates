@@ -1,0 +1,16 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  // Static assets only: the affiliate portal is a browser SPA and has no Worker code.
+  "name": "solasta-lighting-affiliates",
+  // Cloudflare account that owns mysolasta.com (not a secret).
+  "account_id": "246c5ba5d1b6a3a0d952e81e1efdea9a",
+  "compatibility_date": "2026-06-16",
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "single-page-application"
+  },
+  // Cloudflare creates the DNS record and certificate for this custom domain on deploy.
+  // affiliates.mysolasta.com must match the affiliate-portal client's redirect URIs and the API's CORS origins.
+  "routes": [{ "pattern": "affiliates.mysolasta.com", "custom_domain": true }],
+  "workers_dev": false
+}

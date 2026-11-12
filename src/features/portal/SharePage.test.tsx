@@ -39,6 +39,7 @@ describe('SharePage', () => {
     vi.stubGlobal('fetch', api({
       'GET /api/affiliate/me/campaigns': () => envelope([campaign]),
       'GET /api/affiliate/platforms': () => envelope(platforms),
+      'GET /api/affiliate/me/social-posts': () => envelope([]),
     }))
     renderPage(<SharePage />)
 
@@ -56,6 +57,7 @@ describe('SharePage', () => {
     const fetch = api({
       'GET /api/affiliate/me/campaigns': () => envelope([campaign]),
       'GET /api/affiliate/platforms': () => envelope(platforms),
+      'GET /api/affiliate/me/social-posts': () => envelope([]),
       'PUT /api/affiliate/me/placements/AFL-FB-00042/post': () =>
         envelope({ ...link, postUrl: 'https://facebook.com/p/1', postStatus: 'Pending' }),
       'GET /api/affiliate/me': () => envelope({}),
@@ -82,6 +84,7 @@ describe('SharePage', () => {
     const fetch = api({
       'GET /api/affiliate/me/campaigns': () => envelope([campaign]),
       'GET /api/affiliate/platforms': () => envelope(platforms),
+      'GET /api/affiliate/me/social-posts': () => envelope([]),
       'POST /api/affiliate/me/campaigns/7/placements': () =>
         envelope({ ...link, trackingToken: 'AFL-IG-00043', platformCode: 'IG', platformName: 'Instagram', trackedUrl: 'https://mysolasta.com/?ref=JSMITH&t=AFL-IG-00043' }),
     })
@@ -99,6 +102,7 @@ describe('SharePage', () => {
     vi.stubGlobal('fetch', api({
       'GET /api/affiliate/me/campaigns': () => envelope([]),
       'GET /api/affiliate/platforms': () => envelope(platforms),
+      'GET /api/affiliate/me/social-posts': () => envelope([]),
     }))
     renderPage(<SharePage />, { language: 'es' })
 

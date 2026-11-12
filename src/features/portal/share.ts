@@ -67,3 +67,42 @@ export function isPostUrl(value: string): boolean {
     return false
   }
 }
+
+/** A caption followed by the tracked link, the way affiliates post it. */
+export function captionWithLink(caption: string | null | undefined, url: string): string {
+  const text = caption?.trim()
+  return text ? `${text}\n\n${url}` : url
+}
+
+/** True when the phone's share sheet can take these files (Instagram, WhatsApp...). */
+export function canShareFiles(files: File[]): boolean {
+  try {
+    return typeof navigator !== 'undefined' && typeof navigator.canShare === 'function' && navigator.canShare({ files })
+  } catch {
+    return false
+  }
+}
+
+/** Opens the share sheet with files; resolves false when unavailable or the person cancels. */
+export async function shareFiles(files: File[], title: string): Promise<boolean> {
+  if (!canShareFiles(files)) return false
+  try {
+    // Instagram ignores shared text, so the caption goes to the clipboard first and only files are shared.
+    await navigator.share({ files, title })
+    return true
+  } catch {
+    return false
+  }
+}
+
+/** Saves a file to the device through a temporary link. */
+export function saveFile(file: File) {
+  const url = URL.createObjectURL(file)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = file.name
+  document.body.appendChild(a)
+  a.click()
+  a.remove()
+  window.setTimeout(() => URL.revokeObjectURL(url), 10_000)
+}

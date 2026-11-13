@@ -57,7 +57,32 @@ export interface Placement {
   postedDate?: string | null
   postStatus: PostStatus
   rewardBucks?: number | null
+  /** Why staff sent the last post back, when they did. */
+  reviewNote?: string | null
+  /** The Solasta post this link was made for; null for a link of the affiliate's own campaign. */
+  socialPostId?: number | null
   createdDate: string
+}
+
+/** A Solasta Facebook or Instagram post that staff shared with affiliates (AffiliateSocialPostDto). */
+export interface SocialPost {
+  id: number
+  /** Where Solasta posted it: FB or IG. */
+  platformCode: string
+  platformName: string
+  permalink?: string | null
+  mediaType?: string | null
+  postedDate: string
+  shareCaptionEn?: string | null
+  shareCaptionEs?: string | null
+  /** Solasta's original caption, used when staff wrote no caption for affiliates. */
+  caption?: string | null
+  /** Straight from Meta's CDN; expires after a few hours. */
+  previewUrl?: string | null
+  mediaCount: number
+  hasVideo: boolean
+  /** My tracked links for this post, one per platform I chose. */
+  placements: Placement[]
 }
 
 export interface Campaign {
@@ -75,6 +100,7 @@ export const keys = {
   bucks: (page: number) => ['affiliate', 'bucks', page] as const,
   campaigns: ['affiliate', 'campaigns'] as const,
   platforms: ['affiliate', 'platforms'] as const,
+  socialPosts: ['affiliate', 'social-posts'] as const,
 }
 
 export function useMe() {
@@ -158,8 +184,41 @@ export function useSubmitPost() {
         body: { postUrl },
       }),
     onSuccess: (placement) => {
-      queryClient.setQueryData<Campaign[]>(keys.campaigns, (list) => replacePlacement(list, placement))
+      if (placement.socialPostId != null)
+        queryClient.setQueryData<SocialPost[]>(keys.socialPosts, (list) => replaceSocialPlacement(list, placement))
+      else queryClient.setQueryData<Campaign[]>(keys.campaigns, (list) => replacePlacement(list, placement))
       void queryClient.invalidateQueries({ queryKey: keys.me })
     },
   })
+}
+
+export function useSocialPosts() {
+  return useQuery({
+    queryKey: keys.socialPosts,
+    queryFn: ({ signal }) => apiFetch<SocialPost[]>('api/affiliate/me/social-posts', { signal }),
+  })
+}
+
+function replaceSocialPlacement(list: SocialPost[] | undefined, placement: Placement): SocialPost[] | undefined {
+  return list?.map((post) =>
+    post.id !== placement.socialPostId
+      ? post
+      : { ...post, placements: post.placements.map((p) => (p.trackingToken === placement.trackingToken ? placement : p)) },
+  )
+}
+
+/** Gets (or makes) my tracked link for sharing a Solasta post on a platform. */
+export function useShareSocialPost() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ postId, platformCode }: { postId: number; platformCode: string }) =>
+      apiFetch<SocialPost>(`api/affiliate/me/social-posts/${postId}/share`, { method: 'POST', body: { platformCode } }),
+    onSuccess: (post) =>
+      queryClient.setQueryData<SocialPost[]>(keys.socialPosts, (list) => list?.map((p) => (p.id === post.id ? post : p))),
+  })
+}
+
+/** Path of a post's picture or video, streamed through the API (fetch it with apiFetchBlob). */
+export function socialMediaPath(postId: number, index: number) {
+  return `api/affiliate/me/social-posts/${postId}/media/${index}`
 }

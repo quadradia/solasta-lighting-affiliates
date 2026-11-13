@@ -1,11 +1,10 @@
 import { useState } from 'react'
-import { ArrowSquareOut, CheckCircle, Clock, PaperPlaneTilt, Plus, ShareNetwork } from '@phosphor-icons/react'
+import { ArrowSquareOut, PaperPlaneTilt, Plus, ShareNetwork } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { CopyField } from '@/components/CopyField'
 import { ErrorPanel } from '@/components/ErrorPanel'
 import { PageHeader } from '@/components/PageHeader'
 import { NotAnAffiliate } from '@/components/RequireAffiliate'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -14,26 +13,9 @@ import { ApiError } from '@/lib/api'
 import { useCampaigns, useCreatePlacement, usePlatforms, type Campaign, type Placement, type Platform } from './api'
 import { NewCampaignDialog } from './NewCampaignDialog'
 import { PostDialog } from './PostDialog'
+import { SolastaPosts } from './SolastaPosts'
+import { StatusBadge } from './StatusBadge'
 import { canNativeShare, nativeShare, shareUrl } from './share'
-
-function StatusBadge({ placement }: { placement: Placement }) {
-  const { t } = useI18n()
-  if (placement.postStatus === 'Approved')
-    return (
-      <Badge variant="success" className="gap-1">
-        <CheckCircle weight="fill" />
-        {t('links.status.Approved', { count: placement.rewardBucks ?? 0 })}
-      </Badge>
-    )
-  if (placement.postStatus === 'Pending')
-    return (
-      <Badge variant="warning" className="gap-1">
-        <Clock />
-        {t('links.status.Pending')}
-      </Badge>
-    )
-  return <Badge variant="outline">{t('links.status.NotPosted')}</Badge>
-}
 
 function PlacementRow({ placement, onPosted }: { placement: Placement; onPosted: (p: Placement) => void }) {
   const { t } = useI18n()
@@ -46,6 +28,11 @@ function PlacementRow({ placement, onPosted }: { placement: Placement; onPosted:
         <span className="font-medium">{placement.platformName}</span>
         <StatusBadge placement={placement} />
       </div>
+      {placement.reviewNote ? (
+        <p className="rounded-md border border-amber-500/30 bg-amber-500/10 p-2 text-sm">
+          {t('links.sentBack', { reason: placement.reviewNote })}
+        </p>
+      ) : null}
       <CopyField value={placement.trackedUrl} label={t('links.copyLink')} />
       <div className="flex flex-wrap gap-2">
         {direct ? (
@@ -157,6 +144,8 @@ export function SharePage() {
         description={t('links.subtitle')}
         actions={campaigns.data && campaigns.data.length > 0 ? <NewCampaignDialog /> : null}
       />
+      <SolastaPosts onPosted={setPosting} />
+      <h2 className="text-lg font-semibold">{t('links.myCampaigns')}</h2>
       {error ? (
         <ErrorPanel
           error={error}

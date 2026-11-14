@@ -67,12 +67,12 @@ describe('SharePage', () => {
 
     await userEvent.click(await screen.findByRole('button', { name: /i posted it/i }))
     const dialog = await screen.findByRole('dialog')
-    await userEvent.type(within(dialog).getByLabelText(/link to your post/i), 'facebook.com/p/1')
+    await userEvent.type(within(dialog).getByLabelText(/link to your post/i), 'not a link')
     await userEvent.click(within(dialog).getByRole('button', { name: /send for review/i }))
-    expect(await within(dialog).findByText(/starting with https/i)).toBeInTheDocument()
+    expect(await within(dialog).findByText(/does not look like a link/i)).toBeInTheDocument()
 
     await userEvent.clear(within(dialog).getByLabelText(/link to your post/i))
-    await userEvent.type(within(dialog).getByLabelText(/link to your post/i), 'https://facebook.com/p/1')
+    await userEvent.type(within(dialog).getByLabelText(/link to your post/i), 'Look at my post facebook.com/p/1')
     await userEvent.click(within(dialog).getByRole('button', { name: /send for review/i }))
 
     await waitFor(() => expect(screen.getByText('In review')).toBeInTheDocument())

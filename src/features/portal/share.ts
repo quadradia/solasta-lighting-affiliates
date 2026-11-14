@@ -68,6 +68,45 @@ export function isPostUrl(value: string): boolean {
   }
 }
 
+/**
+ * Turns whatever the affiliate pasted into a full post link, or null when there is none.
+ * Instagram and Facebook sometimes copy a sentence around the link, and people type links
+ * without https://, so this finds the first link in the text and adds https:// when it is missing.
+ */
+export function normalizePostUrl(value: string): string | null {
+  const text = value.trim()
+  if (!text) return null
+  const found = text.match(/https?:\/\/[^\s<>"']+/i)?.[0]
+  if (found) return isPostUrl(found) ? found : null
+  const bare = text.match(/(?:^|\s)((?:[a-z0-9-]+\.)+[a-z]{2,}\/[^\s<>"']*)/i)?.[1]
+  if (!bare) return null
+  const url = `https://${bare}`
+  return isPostUrl(url) ? url : null
+}
+
+/** Where to go to find the post and its "Copy link" button, per platform. */
+export function platformHome(platformCode: string): string | null {
+  switch (platformCode.toUpperCase()) {
+    case 'IG':
+      return 'https://www.instagram.com/'
+    case 'FB':
+      return 'https://www.facebook.com/'
+    case 'X':
+      return 'https://x.com/'
+    case 'LI':
+      return 'https://www.linkedin.com/'
+    case 'TT':
+      return 'https://www.tiktok.com/'
+    default:
+      return null
+  }
+}
+
+/** True when the browser lets the page read the clipboard (the "Paste" button). */
+export function canReadClipboard(): boolean {
+  return typeof navigator !== 'undefined' && typeof navigator.clipboard?.readText === 'function'
+}
+
 /** A caption followed by the tracked link, the way affiliates post it. */
 export function captionWithLink(caption: string | null | undefined, url: string): string {
   const text = caption?.trim()

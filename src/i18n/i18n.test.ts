@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { en, es } from './messages'
 import { translate } from './index'
-import { isPostUrl, shareUrl } from '@/features/portal/share'
+import { isPostUrl, normalizePostUrl, shareUrl } from '@/features/portal/share'
 
 describe('i18n', () => {
   it('has a Spanish text for every English key', () => {
@@ -24,6 +24,16 @@ describe('share helpers', () => {
     expect(isPostUrl('https://www.instagram.com/p/abc/')).toBe(true)
     expect(isPostUrl('instagram.com/p/abc')).toBe(false)
     expect(isPostUrl('javascript:alert(1)')).toBe(false)
+  })
+
+  it('finds the post link in whatever was pasted', () => {
+    expect(normalizePostUrl(' https://www.instagram.com/p/abc/?igsh=x ')).toBe('https://www.instagram.com/p/abc/?igsh=x')
+    expect(normalizePostUrl('instagram.com/p/abc')).toBe('https://instagram.com/p/abc')
+    expect(normalizePostUrl('Check this out! https://www.facebook.com/share/p/1Ab/')).toBe('https://www.facebook.com/share/p/1Ab/')
+    expect(normalizePostUrl('My post: fb.watch/xyz/ thanks')).toBe('https://fb.watch/xyz/')
+    expect(normalizePostUrl('just some words')).toBeNull()
+    expect(normalizePostUrl('javascript:alert(1)')).toBeNull()
+    expect(normalizePostUrl('')).toBeNull()
   })
 
   it('builds share links only where the platform supports them', () => {
